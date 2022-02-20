@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using CliFx;
+using Spectre.Console;
 
 namespace Ruler.IRule
 {
@@ -10,9 +11,9 @@ namespace Ruler.IRule
         
         internal static async Task<int> Main(string[] args)
         {
-            Console.WriteLine($@"
-Ruler.IRule v{typeof(Program).Assembly.GetName().Version}
-by Tomat
+            AnsiConsole.MarkupLine($@"
+[lightgoldenrod2_1]Ruler.IRule v{typeof(Program).Assembly.GetName().Version}[/]
+[lightgoldenrod3]by Tomat[/]
 ");
             
             return await new CliApplicationBuilder().AddCommandsFromThisAssembly().Build().RunAsync(args);
