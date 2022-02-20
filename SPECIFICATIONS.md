@@ -68,3 +68,20 @@ Currently, not much data is stored in a `manifest.json`, just the bare minimum f
 
 #### `release.zip`
 This is just an archive file containing the release. Investigation into supporting other archive formats (such as the `.tar.gz` combination, or `.rar`) may be investigated (this would add a new field to `manifest.json`).
+
+#### POST Types
+The CDN server can either be locally updated manually (whether through `scp`ing files/folders) or through different POST requests.
+
+##### `git` POST
+Currently, `git` is the only valid POST request.
+
+POST body:
+```json
+{
+    "type": "git",
+    "password": "thisisanexamplepassword",
+    "repo": "https://github.com/doctorhummer/i-rule-storage.git"
+}
+```
+
+A password and repository must be provided. `type` and `password` should be included for all POSTs, while `repo` is `git`-specific.
