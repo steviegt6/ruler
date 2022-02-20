@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -27,7 +29,7 @@ namespace Ruler.IRule.Commands
             string baseDir = Path.Combine(LocationProvider.GetLocation(), "I.RULE");
 
             AnsiConsole.MarkupLine("Welcome to [i]Ruler.IRule[/], the I.RULE installation and updater." +
-                                                "\nInstallations at: " + baseDir);
+                                   "\nInstallations at: " + baseDir);
 
             AnsiConsole.MarkupLine("\nWaiting [u]ten seconds[/], if [u]no input[/] is received...:" +
                                    "\n  * Ruler.IRule will launch the latest version of I.RULE." +
@@ -38,8 +40,9 @@ namespace Ruler.IRule.Commands
             await AwaitUserInput();
 
             HttpResponseMessage versResp = await Client.GetAsync(Program.Endpoint + "versions-manifest.json");
-            VersionsManifest? vers =
-                JsonConvert.DeserializeObject<VersionsManifest>(await versResp.Content.ReadAsStringAsync());
+            VersionsManifest? vers = JsonConvert.DeserializeObject<VersionsManifest>(
+                await versResp.Content.ReadAsStringAsync()
+            );
 
             if (vers is null)
                 throw new InvalidOperationException(
@@ -56,21 +59,22 @@ namespace Ruler.IRule.Commands
                 {
                     AnsiConsole.MarkupLine("\nPlease select a version:");
                     string[] choices = vers.Versions.Select(x => x.Value.Name).ToArray();
-                    
-                    string selecedVersion = AnsiConsole.Prompt(
+
+                    string sel = AnsiConsole.Prompt(
                         new SelectionPrompt<string>()
                             .Title("Select an [red]I.RULE[/] version:")
                             .PageSize(7)
                             .MoreChoicesText("[grey]Move up/down to see more.[/]")
                             .AddChoices(choices)
                     );
-                    
-                    InstallAndPlayVersion(selecedVersion);
+                    string selecedVersion = vers.Versions.First(x => x.Value.Name.Equals(sel)).Key;
+
+                    await InstallAndPlayVersion(baseDir, selecedVersion);
                     return;
                 }
             }
 
-            InstallAndPlayVersion(vers.Latest);
+            await InstallAndPlayVersion(baseDir, vers.Latest);
         }
 
         private async Task AwaitUserInput()
@@ -90,8 +94,114 @@ namespace Ruler.IRule.Commands
             await Task.CompletedTask;
         }
 
-        private void InstallAndPlayVersion(string versionName)
+        private async Task InstallAndPlayVersion(string dir, string versionName)
         {
+            HttpResponseMessage versResp = await Client.GetAsync(Program.Endpoint + "versions/" + versionName + "/manifest.json");
+            VersionManifest? vers = JsonConvert.DeserializeObject<VersionManifest>(
+                await versResp.Content.ReadAsStringAsync()
+            );
+
+            if (vers is null)
+                throw new InvalidOperationException("Could not find version: " + versionName);
+
+            string dirPath = Path.Join(dir, versionName);
+
+            Directory.CreateDirectory(dirPath);
+
+            if (new DirectoryInfo(dirPath).EnumerateFiles().Any(x => x.Extension.Equals(".exe")))
+            {
+                StartGame(dirPath);
+                return;
+            }
+
+            AnsiConsole.MarkupLine($"\nSelected version: [b]{vers.Name}[/] - {vers.Description}\n");
+
+            await AnsiConsole.Progress()
+                .Columns(
+                    new TaskDescriptionColumn(),
+                    new ProgressBarColumn(),
+                    new PercentageColumn(),
+                    new RemainingTimeColumn(),
+                    new SpinnerColumn()
+                ).StartAsync(async x =>
+                {
+                    var task = x.AddTask("Downloading release.zip", new ProgressTaskSettings
+                    {
+                        AutoStart = false
+                    });
+
+                    await DownloadRelease(dirPath, versionName, task);
+                });
+
+            AnsiConsole.MarkupLine("Unzipping (extracting) [u]release.zip[/]...");
+            UnzipRelease(dirPath);
+            
+            // Actually play the game lol.
+            StartGame(dirPath);
+        }
+
+        private async Task DownloadRelease(string dir, string version, ProgressTask task)
+        {
+            // https://stackoverflow.com/a/56091135
+            const int bufferSize = 1024;
+
+            AnsiConsole.MarkupLine("[i]Preparing to download...[/]");
+            
+            using HttpResponseMessage resp = await Client.GetAsync(Program.Endpoint + "versions/" + version + "/release.zip");
+            task.MaxValue(resp.Content.Headers.ContentLength ?? 0);
+            task.StartTask();
+
+            AnsiConsole.MarkupLine(
+                $"Downloading [u]release.zip[/] according to version [u]{version}[/]! ({task.MaxValue} total bytes)"
+            );
+
+            await using Stream cStream = await resp.Content.ReadAsStreamAsync();
+            await using FileStream fStream = new(
+                Path.Combine(dir, "release.zip"),
+                FileMode.Create,
+                FileAccess.Write,
+                FileShare.None,
+                bufferSize,
+                true
+            );
+
+            byte[] buf = new byte[bufferSize];
+            while (true)
+            {
+                int read = await cStream.ReadAsync(buf);
+
+                if (read == 0)
+                    break;
+                
+                task.Increment(read);
+
+                await fStream.WriteAsync(buf.AsMemory(0, read));
+            }
+        }
+
+        private void UnzipRelease(string dirPath)
+        {
+            ZipFile.ExtractToDirectory(Path.Combine(dirPath, "release.zip"), dirPath);
+            File.Delete(Path.Combine(dirPath, "release.zip"));
+        }
+
+        // TODO: Very Windows-focused. If we ever support non-Windows targets, I'll have to update this.
+        private static void StartGame(string directory)
+        {
+            DirectoryInfo dir = new(directory);
+
+            foreach (FileInfo info in dir.EnumerateFiles())
+            {
+                if (info.Extension != ".exe")
+                    continue;
+
+                Process.Start(info.FullName);
+                return;
+            }
+
+            throw new InvalidOperationException(
+                "Attempted to launch game, but no executable was found at directory: " + directory
+            );
         }
     }
 }
