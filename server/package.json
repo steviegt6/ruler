@@ -1,0 +1,23 @@
+{
+  "name": "ruler-server",
+  "version": "1.0.0",
+  "description": "CDN server for Ruler version packages.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Steviegt6/ruler.git"
+  },
+  "keywords": [
+    "cdn",
+    "server"
+  ],
+  "author": "Tomat",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Steviegt6/ruler/issues"
+  },
+  "homepage": "https://github.com/Steviegt6/ruler#readme"
+}
