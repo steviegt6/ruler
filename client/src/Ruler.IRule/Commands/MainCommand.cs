@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -12,6 +13,7 @@ using Newtonsoft.Json;
 using Ruler.Engine.Location;
 using Ruler.Engine.Manifest;
 using Ruler.Engine.Platform;
+using Ruler.IRule.Configuration;
 using Spectre.Console;
 
 #pragma warning disable CliFx_SystemConsoleShouldBeAvoided
@@ -31,11 +33,15 @@ namespace Ruler.IRule.Commands
             AnsiConsole.MarkupLine("Welcome to [i]Ruler.IRule[/], the I.RULE installation and updater." +
                                    "\nInstallations at: " + baseDir);
 
-            AnsiConsole.MarkupLine("\nWaiting [u]ten seconds[/], if [u]no input[/] is received...:" +
+            AnsiConsole.MarkupLine($"\nWaiting [u]{Program.Config.LaunchDelay} milliseconds[/], if [u]no input[/] is received:" +
                                    "\n  * Ruler.IRule will launch the latest version of I.RULE." +
                                    "\n    * If the latest version is not installed, Ruler.IRule will install it." +
-                                   "\n  * [u]Press <ENTER>[/] to download/launch the latest version." +
-                                   "\n    * Press [u]any other key[/] to select an older version to download/launch.");
+                                   "\n" +
+                                   "\n[u]Press <ENTER>[/] to download/launch the latest version." +
+                                   "\n[u]Press <c>[/] to open the configuration menu." +
+                                   "\n[u]Press any other key[/] to install/launch the latest version." +
+                                   "\n" +
+                                   "\n[gray]Don't like the wait time? Configure it in the configuration menu.[/]\n\n");
 
             await AwaitUserInput();
 
@@ -53,24 +59,24 @@ namespace Ruler.IRule.Commands
                 AnsiConsole.MarkupLine("\nNo input received, continuing as planned.");
             else
             {
-                if (Console.ReadKey(true).Key == ConsoleKey.Enter)
-                    AnsiConsole.MarkupLine("\nReceived <ENTER>, continuing as planned.");
-                else
+                ConsoleKey key = Console.ReadKey(true).Key;
+
+                switch (key)
                 {
-                    AnsiConsole.MarkupLine("\nPlease select a version:");
-                    string[] choices = vers.Versions.Select(x => x.Value.Name).ToArray();
-
-                    string sel = AnsiConsole.Prompt(
-                        new SelectionPrompt<string>()
-                            .Title("Select an [red]I.RULE[/] version:")
-                            .PageSize(7)
-                            .MoreChoicesText("[grey]Move up/down to see more.[/]")
-                            .AddChoices(choices)
-                    );
-                    string selecedVersion = vers.Versions.First(x => x.Value.Name.Equals(sel)).Key;
-
-                    await InstallAndPlayVersion(baseDir, selecedVersion);
-                    return;
+                    case ConsoleKey.Enter:
+                        AnsiConsole.MarkupLine("\nReceived <ENTER>, continuing as planned.");
+                        break;
+                    
+                    case ConsoleKey.C:
+                    {
+                        if (await OpenConfigurationMenu())
+                            await PromptVersionSelection(baseDir, vers);
+                        return;
+                    }
+                    
+                    default:
+                        await PromptVersionSelection(baseDir, vers);
+                        return;
                 }
             }
 
@@ -79,9 +85,9 @@ namespace Ruler.IRule.Commands
 
         private async Task AwaitUserInput()
         {
-            for (int i = 0; i < 10000 / 50; i++)
+            for (int i = 0; i < Program.Config.LaunchDelay / 100; i++)
             {
-                await Task.Delay(50);
+                await Task.Delay(100);
 
                 if (!Console.KeyAvailable)
                     continue;
@@ -92,6 +98,22 @@ namespace Ruler.IRule.Commands
 
             ThreeSecondsPassed = true;
             await Task.CompletedTask;
+        }
+
+        private async Task PromptVersionSelection(string baseDir, VersionsManifest vers)
+        {
+            string[] choices = vers.Versions.Select(x => x.Value.Name).ToArray();
+
+            string sel = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("\nSelect an [red]I.RULE[/] version:")
+                    .PageSize(7)
+                    .MoreChoicesText("[grey]Move up/down to see more.[/]")
+                    .AddChoices(choices)
+            );
+            string selecedVersion = vers.Versions.First(x => x.Value.Name.Equals(sel)).Key;
+
+            await InstallAndPlayVersion(baseDir, selecedVersion);
         }
 
         private async Task InstallAndPlayVersion(string dir, string versionName)
@@ -114,7 +136,7 @@ namespace Ruler.IRule.Commands
                 return;
             }
 
-            AnsiConsole.MarkupLine($"\nSelected version: [b]{vers.Name}[/] - {vers.Description}\n");
+            AnsiConsole.MarkupLine($"\n\nSelected version: [b]{vers.Name}[/] - {vers.Description}\n");
 
             await AnsiConsole.Progress()
                 .Columns(
@@ -183,6 +205,56 @@ namespace Ruler.IRule.Commands
         {
             ZipFile.ExtractToDirectory(Path.Combine(dirPath, "release.zip"), dirPath);
             File.Delete(Path.Combine(dirPath, "release.zip"));
+        }
+
+        private async Task<bool> OpenConfigurationMenu()
+        {
+            Dictionary<string, IConfigItem> configItems = new()
+            {
+                {"Modify Launch Delay", Program.Config.LaunchDelayItem},
+                {"Enable/Disable Update Reviewing", Program.Config.ReviewUpdatesItem},
+                {"Exit Config", new ConfigItem<int>(() => 1, val => _ = val, "")}
+            };
+
+            while (true)
+            {
+                string cfg = AnsiConsole.Prompt(
+                    new SelectionPrompt<string>()
+                        .Title("\nSelect a configuration option:")
+                        .PageSize(5)
+                        .MoreChoicesText("[grey]Move up/down to see more, if there are any.[/]")
+                        .AddChoices(configItems.Keys)
+                );
+
+                if (cfg == "Exit Config")
+                    break;
+
+                IConfigItem item = configItems[cfg];
+                item.Value = item.GetPromptResult(
+                    $"Please enter a new value for \"{cfg}\":",
+                    "white",
+                    _ => true
+                );
+            }
+
+            await File.WriteAllTextAsync(Program.ConfigPath, JsonConvert.SerializeObject(Program.Config));
+            
+            AnsiConsole.MarkupLine("Press [u]<SPACE>[/] to exit. Press [u]<ENTER>[/] to select a version to launch.");
+
+            Guh:
+            ConsoleKey key = Console.ReadKey(true).Key;
+
+            switch (key)
+            {
+                case ConsoleKey.Enter:
+                    return true;
+                
+                case ConsoleKey.Spacebar:
+                    return false;
+                
+                default:
+                    goto Guh;
+            }
         }
 
         // TODO: Very Windows-focused. If we ever support non-Windows targets, I'll have to update this.
