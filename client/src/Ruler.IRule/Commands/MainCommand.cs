@@ -16,7 +16,7 @@ namespace Ruler.IRule.Commands
         {
             await console.Output.WriteLineAsync("Welcome to Ruler.IRule, the I.RULE installation and updater.");
 
-            await console.Output.WriteLineAsync("Waiting three seconds, if no input is received...:" +
+            await console.Output.WriteLineAsync("\nWaiting five seconds, if no input is received...:" +
                                                 "\n  * Ruler.IRule will launch the latest version of I.RULE." +
                                                 "\n    * If the latest version is not installed, Ruler.IRule will install it." +
                                                 "\n  * Press <ENTER> to download/launch the latest version." +
@@ -39,7 +39,7 @@ namespace Ruler.IRule.Commands
 
         private async Task AwaitUserInput()
         {
-            for (int i = 0; i < 3000 / 50; i++)
+            for (int i = 0; i < 5000 / 50; i++)
             {
                 await Task.Delay(50);
 
