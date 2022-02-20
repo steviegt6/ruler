@@ -1,0 +1,4 @@
+server/src/static/
+server/config.json
+server/package-lock.json
+server/node_modules/

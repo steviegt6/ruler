@@ -1,0 +1,5 @@
+{
+  "port": 3005,
+  "passwords": ["put a valid password (token, whatever) here"],
+  "dir": "static"
+}

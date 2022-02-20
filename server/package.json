@@ -2,8 +2,9 @@
   "name": "ruler-server",
   "version": "1.0.0",
   "description": "CDN server for Ruler version packages.",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
+    "start": "node src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -19,5 +20,9 @@
   "bugs": {
     "url": "https://github.com/Steviegt6/ruler/issues"
   },
-  "homepage": "https://github.com/Steviegt6/ruler#readme"
+  "homepage": "https://github.com/Steviegt6/ruler#readme",
+  "dependencies": {
+    "child_process": "^1.0.2",
+    "express": "^4.17.3"
+  }
 }

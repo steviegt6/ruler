@@ -1,0 +1,5 @@
+{
+  "port": 3005,
+  "passwords": ["thisisanexamplepassword"],
+  "dir": "static"
+}

@@ -13,7 +13,7 @@ The server should serve a specific folder, which contains data that allows you t
 
 Something like this:
 ```
-served directory
+static
 ├─versions-manfiest.json
 ├─versions
 │ ├─version-x
