@@ -9,4 +9,4 @@ The client is an application which interfaces with the server. Provided in this 
 **TODO: Rename Ruler.Engine to something not stupid.**
 
 ## Server
-A self-hostable Node server that serves downloads. _RULER_ is abstracted enough to allow alternative servers to be used, as long as you provide support.
+A self-hostable Node server that serves downloads. _RULER_ is simple enough to allow alternative servers to be used, as long as you provide support.
