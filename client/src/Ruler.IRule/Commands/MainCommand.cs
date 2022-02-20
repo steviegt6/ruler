@@ -41,7 +41,7 @@ namespace Ruler.IRule.Commands
                                    "\n[u]Press <c>[/] to open the configuration menu." +
                                    "\n[u]Press any other key[/] to install/launch the latest version." +
                                    "\n" +
-                                   "\n[gray]Don't like the wait time? Configure it in the configuration menu.[/]\n\n");
+                                   "\n[gray]Don't like the wait time? Configure it in the configuration menu.[/]\n");
 
             await AwaitUserInput();
 
@@ -138,6 +138,39 @@ namespace Ruler.IRule.Commands
 
             AnsiConsole.MarkupLine($"\n\nSelected version: [b]{vers.Name}[/] - {vers.Description}\n");
 
+            if (Program.Config.ReviewUpdates)
+            {
+                string desc = vers.Description;
+
+                if (vers.Description == "{{ USE_CHANGELOG }}")
+                {
+                    HttpResponseMessage clResp = await Client.GetAsync(Program.Endpoint + "versions/" + versionName + "/changelog.txt");
+                    desc = await clResp.Content.ReadAsStringAsync();
+                }
+                
+                AnsiConsole.MarkupLine("[b]VERSION OVERVIEW[/]" +
+                                       $"\n[u]{vers.Name}[/]" +
+                                       "\n" +
+                                       $"\n[grey69]{desc}[/]" +
+                                       "\n\nPress <ENTER> to confirm this installation. Press <SPACE> to quit," +
+                                       "\n[gray]Don't want to see this prompt? Modify \"Update Reviewing\" in the config![/]");
+                
+                Guh:
+                ConsoleKey key = Console.ReadKey(true).Key;
+
+                switch (key)
+                {
+                    case ConsoleKey.Enter:
+                        break;
+                
+                    case ConsoleKey.Spacebar:
+                        return;
+                
+                    default:
+                        goto Guh;
+                }
+            }
+            
             await AnsiConsole.Progress()
                 .Columns(
                     new TaskDescriptionColumn(),
