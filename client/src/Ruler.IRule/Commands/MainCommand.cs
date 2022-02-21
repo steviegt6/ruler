@@ -80,7 +80,7 @@ namespace Ruler.IRule.Commands
                 }
             }
 
-            await InstallAndPlayVersion(baseDir, vers.Latest);
+            await InstallAndPlayVersion(true, baseDir, vers.Latest);
         }
 
         private async Task AwaitUserInput()
@@ -113,10 +113,10 @@ namespace Ruler.IRule.Commands
             );
             string selecedVersion = vers.Versions.First(x => x.Value.Name.Equals(sel)).Key;
 
-            await InstallAndPlayVersion(baseDir, selecedVersion);
+            await InstallAndPlayVersion(false, baseDir, selecedVersion);
         }
 
-        private async Task InstallAndPlayVersion(string dir, string versionName)
+        private async Task InstallAndPlayVersion(bool auto, string dir, string versionName)
         {
             HttpResponseMessage versResp = await Client.GetAsync(Program.Endpoint + "versions/" + versionName + "/manifest.json");
             VersionManifest? vers = JsonConvert.DeserializeObject<VersionManifest>(
@@ -138,7 +138,7 @@ namespace Ruler.IRule.Commands
 
             AnsiConsole.MarkupLine($"\n\nSelected version: [b]{vers.Name}[/] - {vers.Description}\n");
 
-            if (Program.Config.ReviewUpdates)
+            if (Program.Config.ReviewUpdates && !auto)
             {
                 string desc = vers.Description;
 
