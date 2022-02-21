@@ -300,7 +300,7 @@ namespace Ruler.IRule.Commands
                 if (info.Extension != ".exe")
                     continue;
 
-                Process.Start(info.FullName, "-noupdatechecker");
+                Process.Start(info.FullName);
                 return;
             }
 

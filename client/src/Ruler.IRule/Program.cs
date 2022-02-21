@@ -24,6 +24,7 @@ namespace Ruler.IRule
             AnsiConsole.MarkupLine($@"
 [lightgoldenrod2_1]Ruler.IRule v{typeof(Program).Assembly.GetName().Version}[/]
 [lightgoldenrod3]by Tomat[/]
+Get support in my [#5865F2]Discord server[/]: [blue]https://discord.gg/Y8bvvqyFQw[/]
 ");
 
             if (File.Exists(ConfigPath))
