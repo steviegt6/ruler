@@ -39,7 +39,7 @@ namespace Ruler.IRule.Commands
                                    "\n" +
                                    "\n[u]Press <ENTER>[/] to download/launch the latest version." +
                                    "\n[u]Press <c>[/] to open the configuration menu." +
-                                   "\n[u]Press any other key[/] to install/launch the latest version." +
+                                   "\n[u]Press any other key[/] to choose a version play." +
                                    "\n" +
                                    "\n[gray]Don't like the wait time? Configure it in the configuration menu.[/]\n");
 
