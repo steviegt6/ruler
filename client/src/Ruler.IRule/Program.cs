@@ -21,18 +21,38 @@ namespace Ruler.IRule
 
         internal static async Task<int> Main(string[] args)
         {
-            AnsiConsole.MarkupLine($@"
-[lightgoldenrod2_1]Ruler.IRule v{typeof(Program).Assembly.GetName().Version}[/]
-[lightgoldenrod3]by Tomat[/]
-Get support in my [#5865F2]Discord server[/]: [blue]https://discord.gg/Y8bvvqyFQw[/]
+            try
+            {
+                AnsiConsole.MarkupLine($@"
+[red1 bold]Ruler.IRule[/] [white]v{typeof(Program).Assembly.GetName().Version}[/]
+[indianred1]by Tomat[/]
+[gray]Get support on [#5865F2]Discord[/]: [blue]https://discord.gg/Y8bvvqyFQw[/]
+Report issues on GitHub: [blue]https://github.com/Steviegt6/ruler[/][/]
 ");
 
-            if (File.Exists(ConfigPath))
-                Config = JsonConvert.DeserializeObject<RulerConfig>(await File.ReadAllTextAsync(ConfigPath)) ?? new RulerConfig();
-            else
-                Config = new RulerConfig();
+                if (File.Exists(ConfigPath))
+                    Config = JsonConvert.DeserializeObject<RulerConfig>(await File.ReadAllTextAsync(ConfigPath)) ?? new RulerConfig();
+                else
+                    Config = new RulerConfig();
+                
+                return await new CliApplicationBuilder().AddCommandsFromThisAssembly().Build().RunAsync(args);
+            }
+            catch (Exception e)
+            {
+                AnsiConsole.MarkupLine("[gray]A [red bold]FATAL[/] exception occurred while attempting a task." +
+                                       "\nPlease [u]immediately[/] report this to the developers." +
+                                       "\nFile a ticket here: [blue]https://github.com/Steviegt6/ruler[/]" +
+                                       "\nFor debugging purposes, an exception stacktrace as been provided:" +
+                                       "\n[/]");
+                AnsiConsole.WriteException(e);
+                
+                AnsiConsole.WriteLine("\n\nPlease press any key to exit...");
 
-            return await new CliApplicationBuilder().AddCommandsFromThisAssembly().Build().RunAsync(args);
+                // Force console to wait.
+                _ = Console.ReadKey(true);
+
+                return -1;
+            }
         }
     }
 }
