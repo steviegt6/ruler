@@ -200,8 +200,8 @@ namespace Ruler.IRule.Commands
             // https://stackoverflow.com/a/56091135
             const int bufferSize = 1024;
 
-            AnsiConsole.MarkupLine("[i]Preparing to download...[/]");
-            
+            AnsiConsole.MarkupLine("[i]Preparing to download (this may take a moment)...[/]");
+
             using HttpResponseMessage resp = await Client.GetAsync(Program.Endpoint + "versions/" + version + "/release.zip");
             task.MaxValue(resp.Content.Headers.ContentLength ?? 0);
             task.StartTask();
