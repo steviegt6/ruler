@@ -22,7 +22,7 @@ namespace Ruler.IRule.Commands
     [Command]
     public class MainCommand : ICommand
     {
-        private bool ThreeSecondsPassed;
+        private bool DelayPassed;
         private readonly HttpClient Client = new();
         private readonly ILocationProvider LocationProvider = DesktopLocationProvider.GetDesktopProvider();
 
@@ -30,18 +30,17 @@ namespace Ruler.IRule.Commands
         {
             string baseDir = Path.Combine(LocationProvider.GetLocation(), "I.RULE");
 
-            AnsiConsole.MarkupLine("Welcome to [i]Ruler.IRule[/], the I.RULE installation and updater." +
-                                   "\nInstallations at: " + baseDir);
+            AnsiConsole.MarkupLine("Welcome to [red]Ruler.IRule[/], the I.RULE installation and updater." +
+                                   "\nInstallations are at: " + baseDir);
 
             AnsiConsole.MarkupLine($"\nWaiting [u]{Program.Config.LaunchDelay} milliseconds[/], if [u]no input[/] is received:" +
-                                   "\n  * Ruler.IRule will launch the latest version of I.RULE." +
-                                   "\n    * If the latest version is not installed, Ruler.IRule will install it." +
+                                   "\n * Ruler.IRule will launch (and install, if needed) the [u]latest[/] version of I.RULE" +
                                    "\n" +
-                                   "\n[u]Press <ENTER>[/] to download/launch the latest version." +
-                                   "\n[u]Press <c>[/] to open the configuration menu." +
-                                   "\n[u]Press any other key[/] to choose a version play." +
+                                   "\n Press [u]any[/] button to open a context menu, where you can change settings, select" +
+                                   "\nother versions, etc." +
                                    "\n" +
-                                   "\n[gray]Don't like the wait time? Configure it in the configuration menu.[/]\n");
+                                   "\n[gray]Don't like the wait time? Configure it in the configuration menu.[/]"
+            );
 
             await AwaitUserInput();
 
@@ -55,7 +54,7 @@ namespace Ruler.IRule.Commands
                     "Could not parse JSON received from: " + Program.Endpoint + "versions-manifest.json"
                 );
 
-            if (ThreeSecondsPassed)
+            if (DelayPassed)
                 AnsiConsole.MarkupLine("\nNo input received, continuing as planned.");
             else
             {
@@ -83,20 +82,35 @@ namespace Ruler.IRule.Commands
             await InstallAndPlayVersion(true, baseDir, vers.Latest);
         }
 
+        private static volatile bool Completed;
+        
         private async Task AwaitUserInput()
         {
-            for (int i = 0; i < Program.Config.LaunchDelay / 100; i++)
+#pragma warning disable CS4014 // Disabled as synchronous running here is intentional.
+            Task.Run(() =>
             {
-                await Task.Delay(100);
+                while (!Console.KeyAvailable && !DelayPassed)
+                {
+                }
 
-                if (!Console.KeyAvailable)
-                    continue;
+                Completed = true;
+            });
 
-                await Task.CompletedTask;
-                return;
+            Task.Run(async () =>
+            {
+                await Task.Delay(Program.Config.LaunchDelay);
+
+                if (!Completed)
+                    DelayPassed = true;
+
+                Completed = true;
+            });
+#pragma warning restore CS4014
+            
+            while (!Completed)
+            {
             }
 
-            ThreeSecondsPassed = true;
             await Task.CompletedTask;
         }
 
