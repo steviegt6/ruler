@@ -15,35 +15,5 @@ namespace Ruler.IRule.Configuration
 
         [JsonProperty("branch", DefaultValueHandling = DefaultValueHandling.Populate)]
         public string Branch = Program.DefaultBranch;
-
-        [JsonIgnore]
-        public readonly IConfigItem<int> LaunchDelayItem;
-
-        [JsonIgnore]
-        public readonly IConfigItem<bool> ReviewUpdatesItem;
-        
-        [JsonIgnore]
-        public readonly IConfigItem<string> BranchItem;
-        
-        public RulerConfig()
-        {
-            LaunchDelayItem = new ConfigItem<int>(
-                () => LaunchDelay,
-                val => LaunchDelay = val,
-                "Could not validate input, must be a whole number (ex.: 1000, 2394)."
-            );
-
-            ReviewUpdatesItem = new ConfigItem<bool>(
-                () => ReviewUpdates,
-                val => ReviewUpdates = val,
-                "Could not validate input, must be true/false."
-            );
-            
-            BranchItem = new ConfigItem<string>(
-                () => Branch,
-                val => Branch = val,
-                "Must be a string input." // should never actually show
-            );
-        }
     }
 }

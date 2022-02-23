@@ -15,6 +15,7 @@ using Ruler.Engine.Manifest;
 using Ruler.Engine.Platform;
 using Ruler.IRule.Backend;
 using Ruler.IRule.Configuration;
+using Ruler.IRule.Frontend;
 using Spectre.Console;
 
 #pragma warning disable CliFx_SystemConsoleShouldBeAvoided
@@ -24,7 +25,6 @@ namespace Ruler.IRule.Commands
     public class MainCommand : ICommand
     {
         private bool DelayPassed;
-        private readonly HttpClient Client = new();
         private readonly ILocationProvider LocationProvider = DesktopLocationProvider.GetDesktopProvider();
         private volatile bool Completed;
 
@@ -47,7 +47,7 @@ namespace Ruler.IRule.Commands
 
             await AwaitUserInput();
 
-            HttpResponseMessage versResp = await Client.GetAsync(Program.Endpoint + "versions-manifest.json");
+            HttpResponseMessage versResp = await Program.Client.GetAsync(Program.Endpoint + "versions-manifest.json");
             VersionsManifest? vers = JsonConvert.DeserializeObject<VersionsManifest>(
                 await versResp.Content.ReadAsStringAsync()
             );
@@ -71,7 +71,7 @@ namespace Ruler.IRule.Commands
                     
                     case ConsoleKey.C:
                     {
-                        if (await OpenConfigurationMenu())
+                        if (await ConfigurationMenu.OpenConfigurationMenu())
                             await PromptVersionSelection(baseDir, vers);
                         return;
                     }
@@ -133,7 +133,7 @@ namespace Ruler.IRule.Commands
 
         private async Task InstallAndPlayVersion(bool auto, string dir, string versionName)
         {
-            HttpResponseMessage versResp = await Client.GetAsync(Program.Endpoint + "versions/" + versionName + "/manifest.json");
+            HttpResponseMessage versResp = await Program.Client.GetAsync(Program.Endpoint + "versions/" + versionName + "/manifest.json");
             VersionManifest? vers = JsonConvert.DeserializeObject<VersionManifest>(
                 await versResp.Content.ReadAsStringAsync()
             );
@@ -159,7 +159,7 @@ namespace Ruler.IRule.Commands
 
                 if (vers.Description == "{{ USE_CHANGELOG }}")
                 {
-                    HttpResponseMessage clResp = await Client.GetAsync(Program.Endpoint + "versions/" + versionName + "/changelog.txt");
+                    HttpResponseMessage clResp = await Program.Client.GetAsync(Program.Endpoint + "versions/" + versionName + "/changelog.txt");
                     desc = await clResp.Content.ReadAsStringAsync();
                 }
                 
@@ -217,7 +217,7 @@ namespace Ruler.IRule.Commands
 
             AnsiConsole.MarkupLine("[i]Preparing to download...[/]");
             
-            using HttpResponseMessage resp = await Client.GetAsync(Program.Endpoint + "versions/" + version + "/release.zip");
+            using HttpResponseMessage resp = await Program.Client.GetAsync(Program.Endpoint + "versions/" + version + "/release.zip");
             task.MaxValue(resp.Content.Headers.ContentLength ?? 0);
             task.StartTask();
 
@@ -253,56 +253,6 @@ namespace Ruler.IRule.Commands
         {
             ZipFile.ExtractToDirectory(Path.Combine(dirPath, "release.zip"), dirPath);
             File.Delete(Path.Combine(dirPath, "release.zip"));
-        }
-
-        private async Task<bool> OpenConfigurationMenu()
-        {
-            Dictionary<string, IConfigItem> configItems = new()
-            {
-                {"Modify Launch Delay", Program.Config.LaunchDelayItem},
-                {"Enable/Disable Update Reviewing", Program.Config.ReviewUpdatesItem},
-                {"Exit Config", new ConfigItem<int>(() => 1, val => _ = val, "")}
-            };
-
-            while (true)
-            {
-                string cfg = AnsiConsole.Prompt(
-                    new SelectionPrompt<string>()
-                        .Title("\nSelect a configuration option:")
-                        .PageSize(5)
-                        .MoreChoicesText("[grey]Move up/down to see more, if there are any.[/]")
-                        .AddChoices(configItems.Keys)
-                );
-
-                if (cfg == "Exit Config")
-                    break;
-
-                IConfigItem item = configItems[cfg];
-                item.Value = item.GetPromptResult(
-                    $"Please enter a new value for \"{cfg}\":",
-                    "white",
-                    _ => true
-                );
-            }
-
-            await File.WriteAllTextAsync(Program.ConfigPath, JsonConvert.SerializeObject(Program.Config));
-            
-            AnsiConsole.MarkupLine("Press [u]<SPACE>[/] to exit. Press [u]<ENTER>[/] to select a version to launch.");
-
-            Guh:
-            ConsoleKey key = Console.ReadKey(true).Key;
-
-            switch (key)
-            {
-                case ConsoleKey.Enter:
-                    return true;
-                
-                case ConsoleKey.Spacebar:
-                    return false;
-                
-                default:
-                    goto Guh;
-            }
         }
     }
 }

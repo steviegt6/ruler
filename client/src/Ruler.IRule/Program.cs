@@ -1,10 +1,12 @@
 ﻿using System;
 using System.IO;
+using System.Net.Http;
 using System.Threading.Tasks;
 using CliFx;
 using Newtonsoft.Json;
 using Ruler.Engine.Platform;
 using Ruler.IRule.Configuration;
+using Ruler.IRule.Frontend;
 using Spectre.Console;
 
 namespace Ruler.IRule
@@ -15,6 +17,8 @@ namespace Ruler.IRule
         public const string BranchEndpoint = Endpoint + "branches/";
         public const string DefaultBranch = "main";
 
+        public static readonly HttpClient Client = new();
+        
         public static readonly string ConfigPath = Path.Combine(
             DesktopLocationProvider.GetDesktopProvider().GetLocation(), "I.RULE", "config.json"
         );
@@ -36,6 +40,8 @@ Report issues on GitHub: [blue]https://github.com/Steviegt6/ruler[/][/]
                     Config = JsonConvert.DeserializeObject<RulerConfig>(await File.ReadAllTextAsync(ConfigPath)) ?? new RulerConfig();
                 else
                     Config = new RulerConfig();
+
+                await ConfigurationMenu.WriteConfig();
                 
                 return await new CliApplicationBuilder().AddCommandsFromThisAssembly().Build().RunAsync(args);
             }
