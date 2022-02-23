@@ -11,18 +11,18 @@ namespace Ruler.IRule.Backend
 {
     public static class UserInputHandler
     {
-        public static async Task HandleInput(bool waited)
+        public static async Task HandleInput(bool autoSelect)
         {
-            if (waited)
+            if (autoSelect)
             {
-                // TODO: Play the game lol
+                VersionSelector.SelectVersion(autoSelect);
                 return;
             }
             
             switch (Console.ReadKey().Key)
             {
                 case ConsoleKey.Enter:
-                    // TODO: Play the game lol
+                    VersionSelector.SelectVersion(autoSelect);
                     break;
                 
                 default:
@@ -41,7 +41,7 @@ namespace Ruler.IRule.Backend
                     switch (chosen)
                     {
                         case "Manually Choose Version":
-                            // TODO: this
+                            VersionSelector.SelectVersion(false);
                             return;
                         
                         case "Open Config Menu":
