@@ -13,11 +13,17 @@ namespace Ruler.IRule.Configuration
         [JsonProperty("reviewUpdates", DefaultValueHandling = DefaultValueHandling.Populate)]
         public bool ReviewUpdates = true;
 
+        [JsonProperty("branch", DefaultValueHandling = DefaultValueHandling.Populate)]
+        public string Branch = Program.DefaultBranch;
+
         [JsonIgnore]
         public readonly IConfigItem<int> LaunchDelayItem;
 
         [JsonIgnore]
         public readonly IConfigItem<bool> ReviewUpdatesItem;
+        
+        [JsonIgnore]
+        public readonly IConfigItem<string> BranchItem;
         
         public RulerConfig()
         {
@@ -31,6 +37,12 @@ namespace Ruler.IRule.Configuration
                 () => ReviewUpdates,
                 val => ReviewUpdates = val,
                 "Could not validate input, must be true/false."
+            );
+            
+            BranchItem = new ConfigItem<string>(
+                () => Branch,
+                val => Branch = val,
+                "Must be a string input." // should never actually show
             );
         }
     }

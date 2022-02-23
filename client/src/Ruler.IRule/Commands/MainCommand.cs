@@ -13,6 +13,7 @@ using Newtonsoft.Json;
 using Ruler.Engine.Location;
 using Ruler.Engine.Manifest;
 using Ruler.Engine.Platform;
+using Ruler.IRule.Backend;
 using Ruler.IRule.Configuration;
 using Spectre.Console;
 
@@ -146,7 +147,7 @@ namespace Ruler.IRule.Commands
 
             if (new DirectoryInfo(dirPath).EnumerateFiles().Any(x => x.Extension.Equals(".exe")))
             {
-                StartGame(dirPath);
+                await GameLauncher.RunGame(dirPath);
                 return;
             }
 
@@ -206,7 +207,7 @@ namespace Ruler.IRule.Commands
             UnzipRelease(dirPath);
             
             // Actually play the game lol.
-            StartGame(dirPath);
+            await GameLauncher.RunGame(dirPath);
         }
 
         private async Task DownloadRelease(string dir, string version, ProgressTask task)
@@ -302,25 +303,6 @@ namespace Ruler.IRule.Commands
                 default:
                     goto Guh;
             }
-        }
-
-        // TODO: Very Windows-focused. If we ever support non-Windows targets, I'll have to update this.
-        private static void StartGame(string directory)
-        {
-            DirectoryInfo dir = new(directory);
-
-            foreach (FileInfo info in dir.EnumerateFiles())
-            {
-                if (info.Extension != ".exe")
-                    continue;
-
-                Process.Start(info.FullName);
-                return;
-            }
-
-            throw new InvalidOperationException(
-                "Attempted to launch game, but no executable was found at directory: " + directory
-            );
         }
     }
 }

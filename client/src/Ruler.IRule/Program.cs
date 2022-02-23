@@ -13,6 +13,7 @@ namespace Ruler.IRule
     {
         public const string Endpoint = "https://raw.githubusercontent.com/Steviegt6/i-rule-storage/";
         public const string BranchEndpoint = Endpoint + "branches/";
+        public const string DefaultBranch = "main";
 
         public static readonly string ConfigPath = Path.Combine(
             DesktopLocationProvider.GetDesktopProvider().GetLocation(), "I.RULE", "config.json"
