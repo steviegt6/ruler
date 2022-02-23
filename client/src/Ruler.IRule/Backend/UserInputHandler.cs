@@ -15,14 +15,14 @@ namespace Ruler.IRule.Backend
         {
             if (autoSelect)
             {
-                VersionSelector.SelectVersion(autoSelect);
+                await VersionSelector.SelectVersion(autoSelect);
                 return;
             }
             
             switch (Console.ReadKey().Key)
             {
                 case ConsoleKey.Enter:
-                    VersionSelector.SelectVersion(autoSelect);
+                    await VersionSelector.SelectVersion(autoSelect);
                     break;
                 
                 default:
@@ -41,7 +41,7 @@ namespace Ruler.IRule.Backend
                     switch (chosen)
                     {
                         case "Manually Choose Version":
-                            VersionSelector.SelectVersion(false);
+                            await VersionSelector.SelectVersion(false);
                             return;
                         
                         case "Open Config Menu":
