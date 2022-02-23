@@ -39,15 +39,16 @@ namespace Ruler.IRule.Commands
                                    "\n * Ruler.IRule will launch (and install, if needed) the [u]latest[/] version of I.RULE" +
                                    "\n" +
                                    "\nPress [u]<ENTER>[/] to continue with the latest version." +
-                                   "\nPress [u]any[/] button to open a context menu, where you can change settings, select" +
+                                   "\nPress [u]any other[/] button to open a context menu, where you can change settings, select" +
                                    "\nother versions, etc." +
                                    "\n" +
                                    "\n[gray]Don't like the wait time? Configure it in the configuration menu.[/]"
             );
 
             await AwaitUserInput();
-
-            HttpResponseMessage versResp = await Program.Client.GetAsync(Program.Endpoint + "versions-manifest.json");
+            await UserInputHandler.HandleInput(DelayPassed);
+            return;
+            /*HttpResponseMessage versResp = await Program.Client.GetAsync(Program.Endpoint + "versions-manifest.json");
             VersionsManifest? vers = JsonConvert.DeserializeObject<VersionsManifest>(
                 await versResp.Content.ReadAsStringAsync()
             );
@@ -82,7 +83,7 @@ namespace Ruler.IRule.Commands
                 }
             }
 
-            await InstallAndPlayVersion(true, baseDir, vers.Latest);
+            await InstallAndPlayVersion(true, baseDir, vers.Latest);*/
         }
 
         private async Task AwaitUserInput()

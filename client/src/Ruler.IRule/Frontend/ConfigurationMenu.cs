@@ -6,14 +6,13 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Ruler.Engine.Manifest;
-using Ruler.IRule.Configuration;
 using Spectre.Console;
 
 namespace Ruler.IRule.Frontend
 {
     public static class ConfigurationMenu
     {
-        public static async Task<bool> OpenConfigurationMenu()
+        public static async Task OpenConfigurationMenu()
         {
             List<string> options = new()
             {
@@ -67,23 +66,6 @@ namespace Ruler.IRule.Frontend
             }
 
             await WriteConfig();
-
-            AnsiConsole.MarkupLine("Press [u]<SPACE>[/] to exit. Press [u]<ENTER>[/] to select a version to launch.");
-
-            Guh:
-            ConsoleKey key = Console.ReadKey(true).Key;
-
-            switch (key)
-            {
-                case ConsoleKey.Enter:
-                    return true;
-                
-                case ConsoleKey.Spacebar:
-                    return false;
-                
-                default:
-                    goto Guh;
-            }
         }
 
         public static async Task WriteConfig() =>

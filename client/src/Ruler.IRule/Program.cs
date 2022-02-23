@@ -43,7 +43,17 @@ Report issues on GitHub: [blue]https://github.com/Steviegt6/ruler[/][/]
 
                 await ConfigurationMenu.WriteConfig();
                 
-                return await new CliApplicationBuilder().AddCommandsFromThisAssembly().Build().RunAsync(args);
+                int code = await new CliApplicationBuilder().AddCommandsFromThisAssembly().Build().RunAsync(args);
+
+                if (code == 0) 
+                    return code;
+                
+                AnsiConsole.WriteLine("\n\nPlease press any key to exit...");
+
+                // Force console to wait.
+                _ = Console.ReadKey(true);
+
+                return code;
             }
             catch (Exception e)
             {
