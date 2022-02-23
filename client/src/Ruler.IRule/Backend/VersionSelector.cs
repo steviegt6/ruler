@@ -127,7 +127,7 @@ namespace Ruler.IRule.Backend
                 });
 
             AnsiConsole.MarkupLine("Unzipping (extracting) [u]release.zip[/]...");
-            ZipImporter.UnzipFile(directory, Path.Combine(directory, "release.zip"));
+            ZipImporter.UnzipFile(Path.Combine(directory, "release.zip"), directory);
             
             await GameLauncher.RunGame(directory);
         }
