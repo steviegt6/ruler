@@ -27,6 +27,8 @@ namespace Ruler.IRule
 
         internal static async Task<int> Main(string[] args)
         {
+            Directory.CreateDirectory(Path.Combine(DesktopLocationProvider.GetDesktopProvider().GetLocation(), "I.RULE"));
+            
             try
             {
                 AnsiConsole.MarkupLine($@"
