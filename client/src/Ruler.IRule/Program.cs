@@ -11,7 +11,7 @@ namespace Ruler.IRule
 {
     internal static class Program
     {
-        public const string Endpoint = "https://i-rule.tomat.dev/";
+        public const string Endpoint = "https://raw.githubusercontent.com/Steviegt6/i-rule-storage/main/";
 
         public static readonly string ConfigPath = Path.Combine(
             DesktopLocationProvider.GetDesktopProvider().GetLocation(), "I.RULE", "config.json"
