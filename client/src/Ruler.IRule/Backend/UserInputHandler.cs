@@ -32,6 +32,7 @@ namespace Ruler.IRule.Backend
                         "Open Config Menu",
                         "View Changelog",
                         "Open Save Directory",
+                        "Import .zip File",
                         "Exit Program"
                     };
                     
@@ -58,6 +59,10 @@ namespace Ruler.IRule.Backend
                                 Process.Start("explorer.exe", path);
                             else
                                 Process.Start(path);
+                            return;
+                        
+                        case "Import .zip File":
+                            ZipImporter.ImportZip(AnsiConsole.Ask<string>("Please enter the path to the .zip file:"));
                             return;
                         
                         case "Exit Program":

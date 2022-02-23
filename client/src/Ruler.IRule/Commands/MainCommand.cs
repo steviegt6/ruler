@@ -205,7 +205,7 @@ namespace Ruler.IRule.Commands
                 });
 
             AnsiConsole.MarkupLine("Unzipping (extracting) [u]release.zip[/]...");
-            UnzipRelease(dirPath);
+            ZipImporter.UnzipFile(dirPath, Path.Combine(dirPath, "release.zip"));
             
             // Actually play the game lol.
             await GameLauncher.RunGame(dirPath);
@@ -248,12 +248,6 @@ namespace Ruler.IRule.Commands
 
                 await fStream.WriteAsync(buf.AsMemory(0, read));
             }
-        }
-
-        private void UnzipRelease(string dirPath)
-        {
-            ZipFile.ExtractToDirectory(Path.Combine(dirPath, "release.zip"), dirPath);
-            File.Delete(Path.Combine(dirPath, "release.zip"));
         }
     }
 }
