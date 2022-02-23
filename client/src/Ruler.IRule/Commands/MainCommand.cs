@@ -37,7 +37,8 @@ namespace Ruler.IRule.Commands
             AnsiConsole.MarkupLine($"\nWaiting [u]{Program.Config.LaunchDelay} milliseconds[/], if [u]no input[/] is received:" +
                                    "\n * Ruler.IRule will launch (and install, if needed) the [u]latest[/] version of I.RULE" +
                                    "\n" +
-                                   "\n Press [u]any[/] button to open a context menu, where you can change settings, select" +
+                                   "\nPress [u]<ENTER>[/] to continue with the latest version." +
+                                   "\nPress [u]any[/] button to open a context menu, where you can change settings, select" +
                                    "\nother versions, etc." +
                                    "\n" +
                                    "\n[gray]Don't like the wait time? Configure it in the configuration menu.[/]"
