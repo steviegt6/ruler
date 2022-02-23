@@ -25,6 +25,7 @@ namespace Ruler.IRule.Commands
         private bool DelayPassed;
         private readonly HttpClient Client = new();
         private readonly ILocationProvider LocationProvider = DesktopLocationProvider.GetDesktopProvider();
+        private volatile bool Completed;
 
         public async ValueTask ExecuteAsync(IConsole console)
         {
@@ -82,8 +83,6 @@ namespace Ruler.IRule.Commands
             await InstallAndPlayVersion(true, baseDir, vers.Latest);
         }
 
-        private static volatile bool Completed;
-        
         private async Task AwaitUserInput()
         {
 #pragma warning disable CS4014 // Disabled as synchronous running here is intentional.
