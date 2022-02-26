@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-
+﻿
 namespace Ruler.Engine.Manifest
 {
     /// <summary>
@@ -7,7 +6,6 @@ namespace Ruler.Engine.Manifest
     /// </summary>
     public class VersionsData
     {
-        [JsonProperty("name")]
-        public string Name = "";
+        public string Name { get; set; } = null!;
     }
 }
